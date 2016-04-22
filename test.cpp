@@ -1,65 +1,19 @@
 #include <string>
 #include <iomanip>
 #include <iostream>
+#include "lex_compare.hpp"
 
-//#define LCO_FRIEND_FUNC friend bool lco::less_than
-
-namespace lco
-{
-
-template <typename Object, typename Member, typename... Members>
-bool less_than(const Object& lhs, const Object& rhs, const Member& member, Members... members)
-{
-	if (less_than(lhs, rhs, member))
-	{
-		return true;
-	}
-	else if (less_than(rhs, lhs, member))
-	{
-		return false;
-	}
-	return less_than<Object, Members...>(lhs, rhs, members...);
-}
-
-template <typename Object, typename Member>
-bool less_than(const Object& lhs, const Object& rhs, const Member& member)
-{
-	return impl::less_than(lhs, rhs, member);
-}
-
-namespace impl
-{
-
-template <typename Object, typename MethodReturn>
-bool less_than(const Object& lhs, const Object& rhs, MethodReturn(Object::*method)() const)
-{
-	return (lhs.*method)() < (rhs.*method)();
-}
-
-template <typename Object, typename Functor>
-bool less_than(const Object& lhs, const Object& rhs, const Functor& f)
-{
-	return f(lhs) < f(rhs);
-}
-
-template <typename Object, typename MemberType>
-bool less_than(const Object& lhs, const Object& rhs, MemberType Object::*member)
-{
-	return (lhs.*member) < (rhs.*member);
-}
-
-} // impl
-
-} // lco
-
+class Person;
+bool test_predicate(const Person& lhs, const Person& rhs);
 
 class Person
 {
 public:
-	Person(std::string surname, int age, char initial)
+	Person(std::string surname, int age, char initial, int income)
 		:surname(std::move(surname))
-		, age(age)
-		, initial(initial)
+		,age(age)
+		,initial(initial)
+		,income(income)
 	{
 	}
 
@@ -73,31 +27,49 @@ public:
 		return initial;
 	}
 
-//private:
+	int getIncome() const
+	{
+		return income;
+	}
+
+	bool operator<(const Person& rhs) const
+	{
+		return lco::less_than(*this, rhs,
+			&Person::surname,                                     // member
+			&Person::getAge,                                      // method
+			[](const Person& p) -> char {return p.getInitial();}, // functor
+			LCOPRED(Person, test_predicate)                       // predicate functor
+		);
+	}
+
+private:
 	std::string surname;
 	int age;
 	char initial;
+	int income;
+
+	friend std::ostream& operator<<(std::ostream& os, const Person& p);
 };
 
-bool operator<(const Person& lhs, const Person& rhs)
+bool test_predicate(const Person& lhs, const Person& rhs)
 {
-	return lco::less_than(lhs, rhs, &Person::surname, &Person::getAge, [](const Person& p) -> char {return p.getInitial();});
+	return lhs.getIncome() < rhs.getIncome();
 }
 
 std::ostream& operator<<(std::ostream& os, const Person& p)
 {
-	os << "{" << p.surname << ", " << p.age << ", " << p.initial << "}";
+	os << "{" << p.surname << ", " << p.age << ", " << p.initial << ", " << p.income << "}";
 	return os;
 }
 
 int main()
 {
 	const Person people[5] = {
-		Person("Smith", 43, 'B'),
-		Person("Smith", 43, 'J'),
-		Person("Smith", 9, 'B'),
-		Person("Doe", 19, 'J'),
-		Person("Doe", 43, 'J')
+		Person("Smith", 43, 'B', 45000),
+		Person("Smith", 43, 'J', 52000),
+		Person("Smith", 9, 'B', 0),
+		Person("Doe", 19, 'J', 20000),
+		Person("Doe", 43, 'J', 60000)
 	};
 	for (const Person& lhs : people)
 	{
