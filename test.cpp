@@ -1,7 +1,6 @@
 #include <string>
 #include <iomanip>
 #include <iostream>
-#include <functional>
 
 //#define LCO_FRIEND_FUNC friend bool lco::less_than
 
@@ -25,26 +24,31 @@ bool less_than(const Object& lhs, const Object& rhs, const Member& member, Membe
 template <typename Object, typename Member>
 bool less_than(const Object& lhs, const Object& rhs, const Member& member)
 {
-	return less_than_impl(lhs, rhs, member);
+	return impl::less_than(lhs, rhs, member);
 }
 
+namespace impl
+{
+
 template <typename Object, typename MethodReturn>
-bool less_than_impl(const Object& lhs, const Object& rhs, MethodReturn(Object::*method)() const)
+bool less_than(const Object& lhs, const Object& rhs, MethodReturn(Object::*method)() const)
 {
 	return (lhs.*method)() < (rhs.*method)();
 }
 
-template <typename Object, typename MethodReturn>
-bool less_than_impl(const Object& lhs, const Object& rhs, const std::function<MethodReturn(const Object&)>& f)
+template <typename Object, typename Functor>
+bool less_than(const Object& lhs, const Object& rhs, const Functor& f)
 {
 	return f(lhs) < f(rhs);
 }
 
 template <typename Object, typename MemberType>
-bool less_than_impl(const Object& lhs, const Object& rhs, MemberType Object::*member)
+bool less_than(const Object& lhs, const Object& rhs, MemberType Object::*member)
 {
 	return (lhs.*member) < (rhs.*member);
 }
+
+} // impl
 
 } // lco
 
@@ -77,8 +81,7 @@ public:
 
 bool operator<(const Person& lhs, const Person& rhs)
 {
-	std::function<char(const Person& p)> f([](const Person& p) -> char {return p.getInitial();});
-	return lco::less_than(lhs, rhs, &Person::surname, &Person::getAge, f);
+	return lco::less_than(lhs, rhs, &Person::surname, &Person::getAge, [](const Person& p) -> char {return p.getInitial();});
 }
 
 std::ostream& operator<<(std::ostream& os, const Person& p)
