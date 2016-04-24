@@ -64,6 +64,9 @@ private:
 	Functor f;
 };
 
+// Helper macro for defining predicates
+#define LCOPRED(Object, functor) lco::Pred<Object, decltype(&functor)>(&functor)
+
 // Actual implementations of comparisons on a type-by-type basis to allow heterogenous support of
 // fields, methods, and custom functions
 namespace impl
@@ -107,8 +110,5 @@ bool LessThan(const Object& lhs, const Object& rhs, const Functor& f)
 
 } // impl
 } // lco
-
-// Helper macro for defining predicates
-#define LCOPRED(Object, functor) lco::Pred<Object, decltype(&functor)>(&functor)
 
 #endif // LCO_LEX_COMPARE_HPP

@@ -55,7 +55,6 @@ private:
 	int income;
 
 	friend std::ostream& operator<<(std::ostream& os, const Person& p);
-	friend bool compFields(const Person& lhs, const Person& rhs);
 };
 
 bool testPredicate(const Person& lhs, const Person& rhs)
