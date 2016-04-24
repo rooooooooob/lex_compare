@@ -19,6 +19,8 @@ functions to be compared with!
 Example:
 ```c++
 lco::LessThan(
+    dog1,
+    dog2,
     &Dog::age,                                      // member variable
     &Dog::getBones,                                 // member method
     [](const Dog& d) -> int {
@@ -28,6 +30,12 @@ lco::LessThan(
         return lhs.catsChased < rhs.catsChased;     // custom predicate
     }
 );
+```
+
+or to create functor:
+```c++
+auto comp = lco::Functor<Dog>::make(&Dog::age, &Dog::getBones);
+comp(dog1, dog2);
 ```
 
 Working examples are shown in test.cpp
