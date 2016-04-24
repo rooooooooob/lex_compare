@@ -7,7 +7,7 @@ something like std::lexicographical_compare to automatically generate it?
 
 Now that C++ has variadic templates you can! Just include this header-only
 library and specify which fields, methods or custom functions you want your
-functions to be compared with!
+classes to be compared with!
 
 ### Supported compare types:
 
@@ -18,24 +18,37 @@ functions to be compared with!
 
 Example:
 ```c++
-lco::LessThan(
-    dog1,
-    dog2,
-    &Dog::age,                                      // member variable
-    &Dog::getBones,                                 // member method
-    [](const Dog& d) -> int {
-        return d.toyCount();                        // custom function
-    },
-    [](const Dog& lhs, const Dog& rhs) -> bool
-        return lhs.catsChased < rhs.catsChased;     // custom predicate
-    }
-);
+struct Dog
+{
+    int getBones() const;
+    int toyCount() const;
+    int age;
+};
+
+bool customPredicate(const Dog& lhs, const Dog& rhs);
+
+bool operator<(const Dog& lhs, const Dog& rhs)
+{
+    return lco::LessThan(
+        lhs,
+        rhs,
+        &Dog::age,                // member variable
+        &Dog::getBones,           // member method
+        [](const Dog& d) -> int {
+            return d.toyCount();  // custom function
+        },
+        &customPredicate          // custom predicate
+    );
+}
 ```
 
 or to create functor:
 ```c++
-auto comp = lco::Functor<Dog>::make(&Dog::age, &Dog::getBones);
+auto comp = lco::Functor<Dog>::make(&Dog::age, &Dog::getBones, &someFunction);
+// call it
 comp(dog1, dog2);
+// or pass it to STL containers/etc
+std::map<std::string, Dog, decltype(comp)> dogs(comp);
 ```
 
 Working examples are shown in test.cpp
