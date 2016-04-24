@@ -7,15 +7,30 @@
 namespace lco
 {
 
+/**
+ * A functor version of lco::LessThan
+ * Note: Constructor can be unwieldy to use since template types cannot be
+ * inferred so it is advised to use Functor<Object>::make(f1, f2, ...) instead
+ * of LessThanFunctor<Object, decltype(f1), decltype(f2), ...>(f1, f2, ...)
+ */
 template <typename Object, typename... Fields>
 class LessThanFunctor
 {
 public:
+	/**
+	 * @param fields The fields to use in Object comparison
+	 */
 	LessThanFunctor(Fields... fields)
 		:fields(fields...)
 	{
 	}
 
+	/**
+	 * Compares two input objects lexicographically by the stored fields
+	 * @param lhs left Object to compare
+	 * @param
+	 * @return true if lhs < rhs lexicographically
+	 */
 	bool operator()(const Object& lhs, const Object& rhs) const
 	{
 		return compare<0>(lhs, rhs);
@@ -45,10 +60,18 @@ private:
 	std::tuple<Fields...> fields;
 };
 
+/**
+ * A utility function to make construction of LessThanFunctor less verbose
+ */
 template <typename Object>
 class Functor
 {
 public:
+	/**
+	 * Constructs a LessThanFunctor that compares by fields
+	 * @param fields The fields to lexicographically comapre by
+	 * @return the functor
+	 */
 	template <typename... Fields>
 	static auto make(Fields... fields) -> LessThanFunctor<Object, Fields...>
 	{

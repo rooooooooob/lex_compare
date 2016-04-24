@@ -4,6 +4,14 @@
 namespace lco
 {
 
+/**
+ * Lexicographically compares two objects
+ * @param lhs Left hand side object to compare
+ * @param rhs Right hand side object to compare
+ * @param field First field of the objects to compare
+ * @param fields The rest of the fields to compare
+ * @return true if lhs is lexicographically before rhs
+ */
 template <typename Object, typename Field, typename... Fields>
 bool LessThan(const Object& lhs, const Object& rhs, const Field& field, Fields... fields)
 {
@@ -18,28 +26,26 @@ bool LessThan(const Object& lhs, const Object& rhs, const Field& field, Fields..
 	return LessThan(lhs, rhs, fields...);
 }
 
-template <typename Object, typename Member>
-bool LessThan(const Object& lhs, const Object& rhs, const Member& field)
+/**
+ * Lexicographically compares two objects
+ * @param lhs Left hand side object to compare
+ * @param rhs Right hand side object to compare
+ * @param field The field of the objects to compare
+ * @return true if lhs is lexicographically before rhs
+ */
+template <typename Object, typename Field>
+bool LessThan(const Object& lhs, const Object& rhs, const Field& field)
 {
 	return impl::LessThan(lhs, rhs, field);
 }
 
-namespace impl
-{
-
-template <typename Object, typename MethodReturn>
-bool LessThan(const Object& lhs, const Object& rhs, MethodReturn(Object::*method)() const)
-{
-	return (lhs.*method)() < (rhs.*method)();
-}
-
-template <typename Object, typename MemberType>
-bool LessThan(const Object& lhs, const Object& rhs, MemberType Object::*member)
-{
-	return (lhs.*member) < (rhs.*member);
-}
-
-
+/**
+ * A predicate comparator that invokes the wrapped functor
+ * on the objects to compare and expects the functor to return
+ * true if lhs is lexicographically smaller than rhs along whatever
+ * custom comparisons the user wants. Use this only if your compairons
+ * cannot be directly expressed as comparing two fields of an object
+ */
 template <typename Object, typename Functor>
 class Pred
 {
@@ -58,12 +64,41 @@ private:
 	Functor f;
 };
 
+// Actual implementations of comparisons on a type-by-type basis to allow heterogenous support of
+// fields, methods, and custom functions
+namespace impl
+{
+
+/**
+ * Compares the result of a getter function of lhs to that of rhs. ie lhs.method() < rhs.method()
+ */
+template <typename Object, typename MethodReturn>
+bool LessThan(const Object& lhs, const Object& rhs, MethodReturn(Object::*method)() const)
+{
+	return (lhs.*method)() < (rhs.*method)();
+}
+
+/**
+ * Compare a field of lhs to a field of rhs using member variables ie lhs.field < rhs.field
+ */
+template <typename Object, typename MemberType>
+bool LessThan(const Object& lhs, const Object& rhs, MemberType Object::*member)
+{
+	return (lhs.*member) < (rhs.*member);
+}
+
+/**
+ * Compares lhs to rhs using a special predicate which will assume that lhs < rhs if f(lhs, rhs) = true
+ */
 template <typename Object, typename Functor>
 bool LessThan(const Object& lhs, const Object& rhs, const Pred<Object, Functor>& f)
 {
 	return f(lhs, rhs);
 }
 
+/**
+ * Lexicographically compares lhs to rhs by the result of the passed in functor ie f(lhs) < f(rhs)
+ */
 template <typename Object, typename Functor>
 bool LessThan(const Object& lhs, const Object& rhs, const Functor& f)
 {
@@ -73,6 +108,7 @@ bool LessThan(const Object& lhs, const Object& rhs, const Functor& f)
 } // impl
 } // lco
 
-#define LCOPRED(Object, functor) lco::impl::Pred<Object, decltype(&functor)>(&functor)
+// Helper macro for defining predicates
+#define LCOPRED(Object, functor) lco::Pred<Object, decltype(&functor)>(&functor)
 
 #endif // LCO_LEX_COMPARE_HPP

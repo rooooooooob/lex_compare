@@ -44,7 +44,7 @@ public:
 			&Person::surname,                                     // member
 			&Person::getAge,                                      // method
 			[](const Person& p) -> char {return p.getInitial();}, // functor
-			LCOPRED(Person, testPredicate)                       // predicate functor
+			LCOPRED(Person, testPredicate)                        // predicate functor
 		);
 	}
 
