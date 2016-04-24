@@ -2,9 +2,10 @@
 #include <iomanip>
 #include <iostream>
 #include "lex_compare.hpp"
+#include "lex_compare_functor.hpp"
 
 class Person;
-bool test_predicate(const Person& lhs, const Person& rhs);
+bool testPredicate(const Person& lhs, const Person& rhs);
 
 class Person
 {
@@ -15,6 +16,11 @@ public:
 		,initial(initial)
 		,income(income)
 	{
+	}
+
+	const std::string& getSurname() const
+	{
+		return surname;
 	}
 
 	int getAge() const
@@ -34,11 +40,11 @@ public:
 
 	bool operator<(const Person& rhs) const
 	{
-		return lco::less_than(*this, rhs,
+		return lco::LessThan(*this, rhs,
 			&Person::surname,                                     // member
 			&Person::getAge,                                      // method
 			[](const Person& p) -> char {return p.getInitial();}, // functor
-			LCOPRED(Person, test_predicate)                       // predicate functor
+			LCOPRED(Person, testPredicate)                       // predicate functor
 		);
 	}
 
@@ -49,9 +55,10 @@ private:
 	int income;
 
 	friend std::ostream& operator<<(std::ostream& os, const Person& p);
+	friend bool compFields(const Person& lhs, const Person& rhs);
 };
 
-bool test_predicate(const Person& lhs, const Person& rhs)
+bool testPredicate(const Person& lhs, const Person& rhs)
 {
 	return lhs.getIncome() < rhs.getIncome();
 }
@@ -71,11 +78,12 @@ int main()
 		Person("Doe", 19, 'J', 20000),
 		Person("Doe", 43, 'J', 60000)
 	};
+	auto compFields = lco::LessThanFunctor<Person, decltype(&Person::getSurname), decltype(&Person::getAge), decltype(&Person::getInitial), decltype(&Person::getIncome)>(&Person::getSurname, &Person::getAge, &Person::getInitial, &Person::getIncome);
 	for (const Person& lhs : people)
 	{
 		for (const Person& rhs : people)
 		{
-			std::cout << lhs << " < " << rhs << " ?   " << std::boolalpha << (lhs < rhs) << std::endl;
+			std::cout << lhs << " < " << rhs << " ?   " << std::boolalpha << (lhs < rhs) << compFields(lhs, rhs) << std::endl;
 		}
 	}
 	return 0;
