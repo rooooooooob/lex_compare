@@ -11,10 +11,10 @@ classes to be compared with!
 
 ### Supported compare types:
 
-* Member variables.  usage: &Class::var.    result: lhs.var < rhs.var
+* Member variables.  usage: &Class::var.       result: lhs.var < rhs.var
 * Member methods.    usage: &Class::method. result: lhs.method() < rhs.method()
-* Custom functions.  usage: f.              result: f(lhs) < f(rhs)
-* Custom predicates. usage: LCOPRED(f).     result: f(lhs, rhs)
+* Custom functions.  usage: f.                 result: f(lhs) < f(rhs)
+* Custom predicates. usage: LCOPRED(Class, f). result: f(lhs, rhs)
 
 Example:
 ```c++
@@ -32,17 +32,17 @@ bool operator<(const Dog& lhs, const Dog& rhs)
     return lco::LessThan(
         lhs,
         rhs,
-        &Dog::age,                // member variable
-        &Dog::getBones,           // member method
+        &Dog::age,                    // member variable
+        &Dog::getBones,               // member method
         [](const Dog& d) -> int {
-            return d.toyCount();  // custom function
+            return d.toyCount();      // custom function
         },
-        &customPredicate          // custom predicate
+        LCOPRED(Dog, customPredicate) // custom predicate
     );
 }
 ```
 
-or to create functor:
+or to create a functor:
 ```c++
 auto comp = lco::Functor<Dog>::make(&Dog::age, &Dog::getBones, &someFunction);
 // call it
@@ -54,5 +54,5 @@ std::map<std::string, Dog, decltype(comp)> dogs(comp);
 Working examples are shown in test.cpp
 
 Include just lex_compare.hpp for calling less-than or lex_compare_functor.hpp
-(which needs lex.compare.hpp) if you need the comparison in functor form,
+(which needs lex_compare.hpp) if you need the comparison in functor form,
 or you could just use std::bind on it I guess.
