@@ -45,6 +45,17 @@ private:
 	std::tuple<Fields...> fields;
 };
 
+template <typename Object>
+class Functor
+{
+public:
+	template <typename... Fields>
+	static auto make(Fields... fields) -> LessThanFunctor<Object, Fields...>
+	{
+		return LessThanFunctor<Object, Fields...>(fields...);
+	}
+};
+
 } // lco
 
 #endif // LCO_LEX_COMPARE_FUNCTOR_HPP

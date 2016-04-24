@@ -78,7 +78,7 @@ int main()
 		Person("Doe", 19, 'J', 20000),
 		Person("Doe", 43, 'J', 60000)
 	};
-	auto compFields = lco::LessThanFunctor<Person, decltype(&Person::getSurname), decltype(&Person::getAge), decltype(&Person::getInitial), decltype(&Person::getIncome)>(&Person::getSurname, &Person::getAge, &Person::getInitial, &Person::getIncome);
+	auto compFields = lco::Functor<Person>::make(&Person::getSurname, &Person::getAge, &Person::getInitial, &Person::getIncome);
 	for (const Person& lhs : people)
 	{
 		for (const Person& rhs : people)
