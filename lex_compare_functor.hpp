@@ -28,12 +28,23 @@ public:
 	/**
 	 * Compares two input objects lexicographically by the stored fields
 	 * @param lhs left Object to compare
-	 * @param
+	 * @param rhs right Object to compare
 	 * @return true if lhs < rhs lexicographically
 	 */
 	bool operator()(const Object& lhs, const Object& rhs) const
 	{
 		return compare<0>(lhs, rhs);
+	}
+	
+	/**
+	 * Compares two input object pointers lexicographically by the stored fileds
+	 * @param lhs left Object to compare
+	 * @param rhs right Object to compare
+	 * @return true if lhs < rhs lexicographically
+	 */
+	bool operator()(const Object *lhs, const Object *rhs) const
+	{
+		return compare<0>(*lhs, *rhs);
 	}
 
 private:

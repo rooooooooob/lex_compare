@@ -51,6 +51,8 @@ comp(dog1, dog2);
 std::map<std::string, Dog, decltype(comp)> dogs(comp);
 ```
 
+Functors can compare by-reference or by-pointer
+
 Working examples are shown in test.cpp
 
 Include just lex_compare.hpp for calling less-than or lex_compare_functor.hpp
